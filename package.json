@@ -1,0 +1,50 @@
+{
+  "name": "transform-esm-to-commonjs",
+  "version": "0.0.1",
+  "description": "transfrom esm import to commonjs require.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest --run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Plumbiu/transform-esm-to-commonjs.git"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "keywords": [
+    "shim",
+    "esm",
+    "transfrom",
+    "commonjs",
+    "import",
+    "require"
+  ],
+  "author": "Plumbiu",
+  "license": "MIT",
+  "dependencies": {
+    "magic-string": "^0.30.17",
+    "oxc-parser": "^0.72.2"
+  },
+  "devDependencies": {
+    "tsdown": "^0.12.5",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}

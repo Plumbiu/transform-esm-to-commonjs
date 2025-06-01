@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`transformModulesToCommonjs 1`] = `
+"let __require__=(...args)=>new Promise((r)=>r(require(...args)));
+let React=require('react');let {useEffect}=require('react');
+let data=require('./bar.json');
+let vue=require('vue');
+
+export .default= async function App() {
+  const yaml = await __require__('yaml')
+  return <div>app</div>
+}
+
+const foo: string = 'bar'
+exports.foo=foo;
+
+exports.c=c;"
+`;
