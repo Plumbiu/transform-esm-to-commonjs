@@ -5,9 +5,12 @@ function buildRequireDeclaration(
   name: string,
   source: string,
   isDefaultImport: boolean,
+  wrapper?: (right: string) => string,
 ) {
   name = isDefaultImport ? name : `{${name}}`
-  return `let ${name}=require('${source}');`
+  const defaultRight = `require('${source}')`
+  const right = wrapper ? wrapper(defaultRight) : defaultRight
+  return `let ${name}=${right};`
 }
 
 function transformModulesToCommonjs(
@@ -20,10 +23,14 @@ function transformModulesToCommonjs(
   })
   const moudle = ast.module
   const { staticImports, staticExports, dynamicImports } = moudle
+
   if (dynamicImports.length > 0) {
     const inject =
       'let __require__=(...args)=>new Promise((r)=>r(require(...args)));\n'
     ms.prepend(inject)
+  }
+  if (staticImports.length || staticExports.length || dynamicImports.length) {
+    ms.prepend('Object.defineProperty(exports,"__esModule",{value: true})\n')
   }
   for (const { start, end, moduleRequest } of dynamicImports) {
     const module = code.slice(moduleRequest.start, moduleRequest.end)
@@ -42,11 +49,20 @@ function transformModulesToCommonjs(
       // import React from 'react'
       // import * as React from 'react'
       if (importKind === 'Default' || importKind === 'NamespaceObject') {
-        defaultImportStr += buildRequireDeclaration(
+        let wrapper: undefined | ((right: string) => string)
+        if (importKind === 'NamespaceObject') {
+          ms.prepend(
+            'function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{let newObj={};if(obj!=null){for(let key in obj){if(Object.prototype.hasOwnProperty.call(obj, key)){newObj[key]=obj[key];}}} newObj.default=obj;return newObj;}}\n',
+          )
+          wrapper = (right) => `_interopRequireWildcard(${right})`
+        }
+        const requireStr = buildRequireDeclaration(
           localName.value,
           importSource,
           true,
+          wrapper,
         )
+        defaultImportStr += requireStr
       }
       // import { useEffect } from 'react'
       else if (importKind === 'Name') {
