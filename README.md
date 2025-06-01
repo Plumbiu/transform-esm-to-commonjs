@@ -55,7 +55,7 @@ exports.c=c;
 
 # why build this repo
 
-[oxc](https://github.com/oxc-project/oxc) only transfrom code esm format, commonjs is not plain, see https://github.com/oxc-project/oxc/issues/4050.
+[oxc](https://github.com/oxc-project/oxc) only transfrom code esm format, commonjs is not planned, see https://github.com/oxc-project/oxc/issues/4050.
 
 commonjs is easy to run with `Function` or `eval`, this is useful for live react/vue component. For example:
 
