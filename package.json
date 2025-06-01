@@ -1,6 +1,6 @@
 {
   "name": "transform-esm-to-commonjs",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "transfrom esm import to commonjs require.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
