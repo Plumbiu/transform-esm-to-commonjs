@@ -6,7 +6,7 @@ let React=require('react');let {useEffect}=require('react');
 let data=require('./bar.json');
 let vue=require('vue');
 
-export .default= async function App() {
+exports. default= async function App() {
   const yaml = await __require__('yaml')
   return <div>app</div>
 }

@@ -69,7 +69,15 @@ function transformModulesToCommonjs(
     )
   }
   for (const staticExport of staticExports) {
-    for (const { exportName, importName, localName } of staticExport.entries) {
+    for (const {
+      exportName,
+      importName,
+      localName,
+      isType,
+    } of staticExport.entries) {
+      if (isType) {
+        continue
+      }
       const exportKind = exportName.kind
       const importKind = importName.kind
       /**
@@ -95,7 +103,10 @@ function transformModulesToCommonjs(
            * localName.kind === 'Default'
            * exprt default App
            */
-          ms.appendLeft(exportName.start, '.')
+          ms.appendLeft(
+            staticExport.start + exportName.end - exportName.start - 1,
+            's.',
+          )
           ms.appendRight(exportName.end, '=')
         } else if (exportKind === 'Name') {
           ms.update(
@@ -111,5 +122,3 @@ function transformModulesToCommonjs(
 }
 
 export default transformModulesToCommonjs
-
-export const a = '1'
