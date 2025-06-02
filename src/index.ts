@@ -5,11 +5,10 @@ function buildRequireDeclaration(
   name: string,
   source: string,
   isDefaultImport: boolean,
-  wrapper?: (right: string) => string,
+  withRequire = true,
 ) {
   name = isDefaultImport ? name : `{${name}}`
-  const defaultRight = `require('${source}')`
-  const right = wrapper ? wrapper(defaultRight) : defaultRight
+  const right = withRequire ? `require('${source}')` : source
   return `let ${name}=${right};`
 }
 
@@ -29,39 +28,36 @@ function transformModulesToCommonjs(
       'let __require__=(...args)=>new Promise((r)=>r(require(...args)));\n'
     ms.prepend(inject)
   }
-  if (staticImports.length || staticExports.length || dynamicImports.length) {
-    ms.prepend('Object.defineProperty(exports,"__esModule",{value: true})\n')
-  }
   for (const { start, end, moduleRequest } of dynamicImports) {
     const module = code.slice(moduleRequest.start, moduleRequest.end)
     ms.update(start, end, `__require__(${module})`)
   }
+  const moduleSet = new Map<string, string>()
   for (const staticImport of staticImports) {
     let defaultImportStr = ''
     const namedImports: string[] = []
-    const importSource = staticImport.moduleRequest.value
-
+    let importSource = staticImport.moduleRequest.value
+    let cachelocalname = moduleSet.get(importSource)
+    let withRequire = !cachelocalname
     for (const { importName, localName, isType } of staticImport.entries) {
-      if (isType) {
+      if (isType || localName == null) {
         continue
+      }
+      if (!cachelocalname) {
+        moduleSet.set(importSource, localName.value)
       }
       const importKind = importName.kind
       // import React from 'react'
       // import * as React from 'react'
       if (importKind === 'Default' || importKind === 'NamespaceObject') {
-        let wrapper: undefined | ((right: string) => string)
-        if (importKind === 'NamespaceObject') {
-          ms.prepend(
-            'function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{let newObj={};if(obj!=null){for(let key in obj){if(Object.prototype.hasOwnProperty.call(obj, key)){newObj[key]=obj[key];}}} newObj.default=obj;return newObj;}}\n',
-          )
-          wrapper = (right) => `_interopRequireWildcard(${right})`
-        }
+        importSource = localName.value
         const requireStr = buildRequireDeclaration(
           localName.value,
           importSource,
           true,
-          wrapper,
+          withRequire,
         )
+        withRequire = false
         defaultImportStr += requireStr
       }
       // import { useEffect } from 'react'
@@ -69,14 +65,14 @@ function transformModulesToCommonjs(
         let value = localName.value
         // import { useEffect as effect } from 'react'
         if (importName.name && importName.name !== value) {
-          value = `${importName.name} as ${localName.value}`
+          value = `${importName.name}: ${localName.value}`
         }
         namedImports.push(value)
       }
     }
     const namedMembers = namedImports.join(',')
     const namedImportStr = namedMembers.trim()
-      ? buildRequireDeclaration(namedMembers, importSource, false)
+      ? buildRequireDeclaration(namedMembers, importSource, false, withRequire)
       : ''
     ms.update(
       staticImport.start,

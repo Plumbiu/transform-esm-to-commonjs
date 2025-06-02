@@ -1,12 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`transformModulesToCommonjs 1`] = `
-"function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{let newObj={};if(obj!=null){for(let key in obj){if(Object.prototype.hasOwnProperty.call(obj, key)){newObj[key]=obj[key];}}} newObj.default=obj;return newObj;}}
-Object.defineProperty(exports,"__esModule",{value: true})
-let __require__=(...args)=>new Promise((r)=>r(require(...args)));
-let React=require('react');let {useEffect}=require('react');
-let data=require('./bar.json');
-let vue=_interopRequireWildcard(require('vue'));
+"let __require__=(...args)=>new Promise((r)=>r(require(...args)));
+let React=require('React');let {useEffect}=React;
+let data=require('data');
+let vue=require('vue');
 
 exports. default= async function App() {
   const yaml = await __require__('yaml')

@@ -37,23 +37,30 @@ transformModulesToCommonjs(module)
 output:
 
 ```js
-function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{let newObj={};if(obj!=null){for(let key in obj){if(Object.prototype.hasOwnProperty.call(obj, key)){newObj[key]=obj[key];}}} newObj.default=obj;return newObj;}}
-Object.defineProperty(exports,"__esModule",{value: true})
-let __require__=(...args)=>new Promise((r)=>r(require(...args)));
-let React=require('react');let {useEffect}=require('react');
-let data=require('./bar.json');
-let vue=_interopRequireWildcard(require('vue'));
+let __require__ = (...args) => new Promise((r) => r(require(...args)))
+let React = require('React')
+let { useEffect } = React
+let data = require('data')
+let vue = require('vue')
 
-exports. default= async function App() {
+exports.default = async function App() {
   const yaml = await __require__('yaml')
   return <div>app</div>
 }
 
 const foo: string = 'bar'
-exports.foo=foo;
+exports.foo = foo
 
-exports.c=c;
+exports.c = c
 ```
+
+# note
+
+The results of this library differ [babel](https://github.com/babel/babel) and [sucrase](https://github.com/alangpierce/sucrase).
+
+Syntax like: `import * as React from 'react'` will be same as `import React from 'react'`.
+
+Part of the reason is that this repository only uses part of the [oxc-parser](https://github.com/oxc-project/oxc) functionality and does not involve AST, and the other part is that this repository is not used for bundle, see the next section to learn more.
 
 # why build this repo
 
@@ -69,12 +76,52 @@ const React = require('react')
 exports.default = function() {
   return React.createElement('div', 'app')
 }`
-
-const fn = new Function('exports', 'require', commonjs)
 const scope = {
   react: React,
 }
 const exports = {}
-fn(exports, (key) => scope[key])
+new Function('exports', 'require', commonjs)(exports, (key) => scope[key])
+
 console.log(exports.default) // will be react component
+```
+
+Based on above code, The esm format code like:
+
+```js
+import * as React from 'react'
+export default function () {
+  return React.default.createElement('div', 'bar')
+}
+```
+
+transfrom to:
+
+```js
+const React = require('react')
+export default function () {
+  return React.default.createElement('div', 'bar')
+}
+```
+
+To get react component by syntax `import * as React from 'react'`, the code should be:
+
+```js
+// just like esm format code import statement
+import * as React from 'react'
+const scope = {
+  react: React,
+}
+
+const esmCode = `
+import * as React from 'react'
+export default function () {
+  return React.default.createElement('div', 'bar')
+}
+`.trim()
+
+const cjsCode = transformModulesToCommonjs(esmCode)
+const exports = {}
+new Function('exports', 'require', commonjs)(exports, (key) => scope[key])
+
+console.log(exports.default) // react component
 ```
